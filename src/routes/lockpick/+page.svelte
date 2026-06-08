@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from "svelte";
 	import defaultLocksUntyped from "$lib/data/locks.json";
 
 	interface Lock {
@@ -26,6 +27,9 @@
 
 	// Currently selected/active lock being displayed and manipulated
 	let currentLock = $state<Lock | null>(null);
+
+	// Warning message for lock not found
+	let warningMessage = $state<string | null>(null);
 
 	// Lock creation form input fields
 	let lockName = $state(""); // Name of new lock being created
@@ -159,6 +163,28 @@
 		}
 	}
 
+	onMount(() => {
+		loadLocks();
+
+		// Check for lock ID from sessionStorage (set by /lockpick/[id] route)
+		const selectedLockId = sessionStorage.getItem("selectedLockId");
+		if (selectedLockId) {
+			const lock = locks.find((l) => l.id === selectedLockId);
+			if (lock) {
+				currentLock = lock;
+				tumblerPositions = [...lock.startingPositions];
+			}
+			sessionStorage.removeItem("selectedLockId");
+		}
+
+		// Check for warning message from sessionStorage (set by /lockpick/[id] route)
+		const lockWarning = sessionStorage.getItem("lockWarning");
+		if (lockWarning) {
+			warningMessage = lockWarning;
+			sessionStorage.removeItem("lockWarning");
+		}
+	});
+
 	function moveTumbler(index: number, direction: "left" | "right") {
 		if (!currentLock) return;
 		const currentPos = tumblerPositions[index];
@@ -247,13 +273,25 @@
 
 		startingPositionsInput = currentPositions.join(",");
 	});
-
-	// Load locks on mount
-	loadLocks();
 </script>
 
 <div class="p-8 max-w-6xl mx-auto">
 	<h1 class="text-3xl font-bold mb-6">Lockpick Solver</h1>
+
+	<!-- Warning message -->
+	{#if warningMessage}
+		<div
+			class="mb-6 p-4 bg-danger/10 border border-danger text-danger rounded"
+		>
+			{warningMessage}
+			<button
+				onclick={() => (warningMessage = null)}
+				class="ml-4 text-sm underline"
+			>
+				Dismiss
+			</button>
+		</div>
+	{/if}
 
 	<!-- Lock Management -->
 	<div class="flex gap-4 mb-6">
