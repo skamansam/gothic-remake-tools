@@ -156,10 +156,11 @@
 	function moveTumbler(index: number, direction: "left" | "right") {
 		if (!currentLock) return;
 		const currentPos = tumblerPositions[index];
+		const centerIndex = Math.floor(currentLock.numHoles / 2);
 		let newPos = direction === "left" ? currentPos - 1 : currentPos + 1;
 
-		// Clamp to valid range
-		newPos = Math.max(0, Math.min(currentLock.numHoles - 1, newPos));
+		// Clamp to valid range - cannot move past center position
+		newPos = Math.max(0, Math.min(centerIndex, newPos));
 
 		if (newPos !== currentPos) {
 			tumblerPositions[index] = newPos;
@@ -169,6 +170,7 @@
 
 	function applyLinks(triggerIndex: number) {
 		if (!currentLock) return;
+		const centerIndex = Math.floor(currentLock.numHoles / 2);
 
 		// Find all links that start from the moved tumbler
 		const triggeredLinks = (currentLock.links || []).filter(
@@ -178,12 +180,10 @@
 		for (const link of triggeredLinks) {
 			const currentPos = tumblerPositions[link.to];
 			let newPos = link.reversed ? currentPos - 1 : currentPos + 1;
-			newPos = Math.max(0, Math.min(currentLock.numHoles - 1, newPos));
+			newPos = Math.max(0, Math.min(centerIndex, newPos));
 
 			if (newPos !== currentPos) {
 				tumblerPositions[link.to] = newPos;
-				// Recursively apply links from the newly moved tumbler
-				applyLinks(link.to);
 			}
 		}
 	}
@@ -447,7 +447,9 @@
 								<div
 									class="w-4 h-8 bg-secondary border-2 border-border rounded-l"
 								></div>
-								<!-- Horizontal tumbler with holes (left to right: bottom to top) -->
+								<!-- Horizontal tumbler with holes (left to right) -->
+								<!-- Center pin always at center of display (hole 3) -->
+								<!-- Tumbler extends 2 positions beyond left edge (off-screen) -->
 								<div class="flex gap-1 items-center">
 									{#each Array(currentLock.numHoles) as _, j}
 										{@const isCenterHole =
@@ -455,19 +457,25 @@
 											Math.floor(
 												currentLock.numHoles / 2,
 											)}
+										{@const centerPinPos =
+											tumblerPositions[displayIndex]}
+										<!-- Displayed hole j corresponds to tumbler position j - 2 (2-position offset) -->
+										<!-- Hole is filled if its tumbler position is less than centerPinPos -->
+										{@const tumblerPos = j - 2}
 										{@const isVisible =
-											j >= tumblerPositions[displayIndex]}
-										<!-- Show holes to the right of position, and center hole even if to the left -->
+											tumblerPos < centerPinPos}
 										<div
-											class="w-8 h-8 border-2 hole hole-{j} {isVisible
-												? 'bg-primary'
-												: 'bg-surface'} border-border flex items-center justify-center"
+											class="w-8 h-8 border-border hole hole-{j} {isVisible
+												? 'bg-primary border-2'
+												: 'bg-surface '} flex items-center justify-center"
 										>
 											{#if isCenterHole}
 												<div
-													class="w-2 h-2 {tumblerPositions[
-														displayIndex
-													] === 0
+													class="w-2 h-2 {centerPinPos ===
+													Math.floor(
+														currentLock.numHoles /
+															2,
+													)
 														? 'bg-text'
 														: 'bg-surface border border-border'} rounded-full"
 												></div>
@@ -483,7 +491,7 @@
 								<div class="flex gap-2 ml-auto">
 									<button
 										onclick={() =>
-											moveTumbler(displayIndex, "right")}
+											moveTumbler(displayIndex, "left")}
 										class="px-2 py-1 bg-secondary text-text border border-border text-xs"
 										disabled={tumblerPositions[
 											displayIndex
@@ -493,12 +501,14 @@
 									</button>
 									<button
 										onclick={() =>
-											moveTumbler(displayIndex, "left")}
+											moveTumbler(displayIndex, "right")}
 										class="px-2 py-1 bg-secondary text-text border border-border text-xs"
 										disabled={tumblerPositions[
 											displayIndex
 										] ===
-											currentLock.numHoles - 1}
+											Math.floor(
+												currentLock.numHoles / 2,
+											)}
 									>
 										→
 									</button>
