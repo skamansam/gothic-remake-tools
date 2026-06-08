@@ -12,34 +12,40 @@
 		links: Array<{ from: number; to: number; reversed: boolean }>;
 	}
 
+	// localStorage key for persisting user-created locks
 	const STORAGE_KEY = "gothic-remake-tools-locks";
 
+	// Default number of holes per tumbler (configurable per lock)
 	const NUM_HOLES = 7;
 
-	// Lock list - load from localStorage with defaults
+	// Default locks loaded from JSON file (bundled with app)
 	const defaultLocks = defaultLocksUntyped as Lock[];
+
+	// All locks (merged default + user locks from localStorage)
 	let locks = $state<Lock[]>([]);
+
+	// Currently selected/active lock being displayed and manipulated
 	let currentLock = $state<Lock | null>(null);
 
-	// Lock creation/editing state
-	let lockName = $state("");
-	let lockDescription = $state("");
-	let lockLocation = $state("");
-	let numTumblers = $state(6);
-	let startingPositionsInput = $state("0,0,0,0,0,0");
-	let startingPositions = $state<number[]>([]);
+	// Lock creation form input fields
+	let lockName = $state(""); // Name of new lock being created
+	let lockDescription = $state(""); // Optional description for new lock
+	let lockLocation = $state(""); // In-game location of the lock
+	let numTumblers = $state(6); // Number of tumblers for new lock (1-10)
+	let startingPositionsInput = $state("0,0,0,0,0,0"); // Comma-separated string input for starting positions
+	let startingPositions = $state<number[]>([]); // Parsed array of starting positions
 
-	// Tumbler state (current positions)
+	// Current positions of tumblers during gameplay (0 = leftmost, 3 = center, 6 = rightmost)
 	let tumblerPositions = $state<number[]>([]);
 
-	// Link creation state
-	let linkFrom = $state<number | null>(null);
-	let linkTo = $state<number | null>(null);
-	let linkReversed = $state(false);
+	// Link creation form state
+	let linkFrom = $state<number | null>(null); // Source tumbler index (0-based)
+	let linkTo = $state<number | null>(null); // Target tumbler index (0-based)
+	let linkReversed = $state(false); // Whether link direction is reversed (opposite movement)
 
-	// UI state
-	let showCreateForm = $state(false);
-	let showLockList = $state(false);
+	// UI modal visibility states
+	let showCreateForm = $state(false); // Show/hide create lock modal
+	let showLockList = $state(false); // Show/hide lock list modal
 
 	function loadLocks() {
 		if (typeof window === "undefined") return;
@@ -437,6 +443,7 @@
 				>
 					<div class="flex flex-col gap-4">
 						{#each Array(currentLock.numTumblers) as _, i}
+							// Display index reverses order so T1 appears at top
 							{@const displayIndex =
 								currentLock.numTumblers - 1 - i}
 							<div class="flex items-center gap-2">
@@ -452,17 +459,24 @@
 								<!-- Tumbler extends 2 positions beyond left edge (off-screen) -->
 								<div class="flex gap-1 items-center">
 									{#each Array(currentLock.numHoles) as _, j}
+										// True if this is the center hole (hole
+										3 for 7 holes)
 										{@const isCenterHole =
 											j ===
 											Math.floor(
 												currentLock.numHoles / 2,
 											)}
+										// Current position of center pin for this
+										tumbler (0-6)
 										{@const centerPinPos =
 											tumblerPositions[displayIndex]}
-										<!-- Displayed hole j corresponds to tumbler position j - 2 (2-position offset) -->
-										<!-- Hole is filled if its tumbler position is less than centerPinPos -->
+										// Tumbler position accounting for 2-position
+										offset beyond left edge
 										{@const tumblerPos = j - 2}
+										// Hole is filled if tumbler material exists
+										at this position
 										{@const isVisible =
+											tumblerPos >= 0 &&
 											tumblerPos < centerPinPos}
 										<div
 											class="w-8 h-8 border-border hole hole-{j} {isVisible
