@@ -1,0 +1,185 @@
+@import "tailwindcss";
+@import "../../twintrinsic/src/lib/twintrinsic.css";
+
+@source "../../twintrinsic/src/lib/components/**/*.svelte";
+@source "./routes/**/*.svelte";
+
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Gothic Gold Theme - Default */
+  --theme-primary: #d4af37;
+  --theme-secondary: #8b6914;
+  --theme-accent: #f4d03f;
+  --theme-bg: #1a1a1a;
+  --theme-border: #b8860b;
+  --theme-text: #e8e8e8;
+}
+
+@theme {
+  /* Base theme colors */
+  --color-background: var(--theme-secondary);
+  --color-surface: var(--theme-bg);
+  --color-text: var(--theme-text);
+  --color-border: var(--theme-border);
+
+  /* Primary color variants - derived from theme-primary */
+  --color-primary-500: var(--theme-primary);
+  --color-primary-400: color-mix(in srgb, var(--theme-primary) 90%, white);
+  --color-primary-300: color-mix(in srgb, var(--theme-primary) 75%, white);
+  --color-primary-200: color-mix(in srgb, var(--theme-primary) 50%, white);
+  --color-primary-100: color-mix(in srgb, var(--theme-primary) 25%, white);
+  --color-primary-50: color-mix(in srgb, var(--theme-primary) 10%, white);
+  --color-primary-600: color-mix(in srgb, var(--theme-primary) 85%, black);
+  --color-primary-700: color-mix(in srgb, var(--theme-primary) 70%, black);
+  --color-primary-800: color-mix(in srgb, var(--theme-primary) 55%, black);
+  --color-primary-900: color-mix(in srgb, var(--theme-primary) 40%, black);
+
+  /* Secondary color variants - derived from theme-secondary */
+  --color-secondary-500: var(--theme-secondary);
+  --color-secondary-400: color-mix(in srgb, var(--theme-secondary) 90%, white);
+  --color-secondary-300: color-mix(in srgb, var(--theme-secondary) 75%, white);
+  --color-secondary-200: color-mix(in srgb, var(--theme-secondary) 50%, white);
+  --color-secondary-100: color-mix(in srgb, var(--theme-secondary) 25%, white);
+  --color-secondary-50: color-mix(in srgb, var(--theme-secondary) 10%, white);
+  --color-secondary-600: color-mix(in srgb, var(--theme-secondary) 85%, black);
+  --color-secondary-700: color-mix(in srgb, var(--theme-secondary) 70%, black);
+  --color-secondary-800: color-mix(in srgb, var(--theme-secondary) 55%, black);
+  --color-secondary-900: color-mix(in srgb, var(--theme-secondary) 40%, black);
+
+  /* Success color variants - derived from theme-primary */
+  --color-success-500: var(--theme-primary);
+  --color-success-400: color-mix(in srgb, var(--theme-primary) 90%, white);
+  --color-success-300: color-mix(in srgb, var(--theme-primary) 75%, white);
+  --color-success-200: color-mix(in srgb, var(--theme-primary) 50%, white);
+  --color-success-100: color-mix(in srgb, var(--theme-primary) 25%, white);
+  --color-success-50: color-mix(in srgb, var(--theme-primary) 10%, white);
+  --color-success-600: color-mix(in srgb, var(--theme-primary) 85%, black);
+  --color-success-700: color-mix(in srgb, var(--theme-primary) 70%, black);
+  --color-success-800: color-mix(in srgb, var(--theme-primary) 55%, black);
+  --color-success-900: color-mix(in srgb, var(--theme-primary) 40%, black);
+
+  /* Static colors - not theme-dependent */
+  --color-warning-500: #f59e0b;
+  --color-error-500: #ef4444;
+  --color-info-500: #3b82f6;
+  --color-muted: color-mix(in srgb, var(--theme-primary) 60%, black);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100vh;
+  max-height: 100vh;
+  width: 100vw;
+  max-width: 100vw;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+/* Style the App component and its sections */
+.app {
+  background-color: var(--theme-bg) !important;
+  max-height: 100vh;
+}
+
+.appMain {
+  background-color: var(--theme-bg) !important;
+  color: var(--theme-text) !important;
+}
+
+/* Progress bar styling - override all progress elements */
+progress {
+  accent-color: var(--theme-primary) !important;
+  color: var(--theme-primary) !important;
+}
+
+/* WebKit browsers (Chrome, Safari, Edge) */
+progress::-webkit-progress-bar {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+progress::-webkit-progress-value {
+  background-color: var(--theme-primary) !important;
+}
+
+/* Firefox */
+progress::-moz-progress-bar {
+  background-color: var(--theme-primary) !important;
+}
+
+/* Override all variant classes */
+.progress-primary {
+  accent-color: var(--theme-primary) !important;
+}
+
+.progress-primary::-webkit-progress-value {
+  background-color: var(--theme-primary) !important;
+}
+
+.progress-primary::-moz-progress-bar {
+  background-color: var(--theme-primary) !important;
+}
+
+.progress-secondary {
+  accent-color: var(--theme-accent) !important;
+}
+
+.progress-secondary::-webkit-progress-value {
+  background-color: var(--theme-accent) !important;
+}
+
+.progress-secondary::-moz-progress-bar {
+  background-color: var(--theme-accent) !important;
+}
+
+.progress-success {
+  accent-color: var(--theme-primary) !important;
+}
+
+.progress-success::-webkit-progress-value {
+  background-color: var(--theme-primary) !important;
+}
+
+.progress-success::-moz-progress-bar {
+  background-color: var(--theme-primary) !important;
+}
+
+/* Checkbox styling for better contrast */
+input[type="checkbox"] {
+  accent-color: var(--theme-primary) !important;
+}
+
+input[type="checkbox"]:checked {
+  background-color: var(--theme-primary) !important;
+  border-color: var(--theme-primary) !important;
+}
+
+/* Improve text contrast in completed items */
+.line-through {
+  color: var(--theme-primary);
+  opacity: 0.7;
+}
+
+/* Hover and active states use accent color */
+button:hover,
+a:hover,
+[role="button"]:hover {
+  background-color: var(--theme-accent) !important;
+  color: var(--theme-bg) !important;
+}
+
+button:active,
+a:active,
+[role="button"]:active,
+button.active,
+a.active,
+[role="button"].active {
+  background-color: var(--theme-accent) !important;
+  color: var(--theme-bg) !important;
+}
