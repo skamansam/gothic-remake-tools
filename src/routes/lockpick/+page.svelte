@@ -49,7 +49,6 @@
 
 	// UI modal visibility states
 	let showCreateForm = $state(false); // Show/hide create lock modal
-	let showLockList = $state(false); // Show/hide lock list modal
 
 	function loadLocks() {
 		if (typeof window === "undefined") return;
@@ -123,7 +122,6 @@
 		tumblerPositions = [...lock.startingPositions];
 		linkFrom = null;
 		linkTo = null;
-		showLockList = false;
 	}
 
 	function updateCurrentLock() {
@@ -296,72 +294,12 @@
 	<!-- Lock Management -->
 	<div class="flex gap-4 mb-6">
 		<button
-			onclick={() => (showLockList = true)}
-			class="px-4 py-2 bg-primary text-text border border-primary"
-		>
-			📋 Load Lock
-		</button>
-		<button
 			onclick={() => (showCreateForm = true)}
 			class="px-4 py-2 bg-secondary text-text border border-border"
 		>
 			➕ New Lock
 		</button>
 	</div>
-
-	<!-- Lock List Modal -->
-	{#if showLockList}
-		<div
-			class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-		>
-			<div
-				class="card border border-border dark:border-border p-6 max-w-2xl w-full mx-4 bg-surface"
-			>
-				<h2 class="text-2xl font-bold mb-4">Saved Locks</h2>
-				{#if locks.length === 0}
-					<p class="text-text mb-4">No locks saved yet.</p>
-				{:else}
-					<div class="space-y-2 max-h-96 overflow-y-auto mb-4">
-						{#each locks as lock}
-							<div
-								class="flex items-center justify-between p-3 bg-surface border border-border"
-							>
-								<div>
-									<h3 class="font-bold">{lock.name}</h3>
-									<p class="text-sm text-text">
-										{lock.location}
-									</p>
-									<p class="text-xs text-text">
-										{lock.numTumblers} tumblers
-									</p>
-								</div>
-								<div class="flex gap-2">
-									<button
-										onclick={() => loadLock(lock)}
-										class="px-3 py-1 bg-primary text-text border border-primary text-sm"
-									>
-										Load
-									</button>
-									<button
-										onclick={() => deleteLock(lock.id)}
-										class="px-3 py-1 bg-error text-text border border-error text-sm"
-									>
-										Delete
-									</button>
-								</div>
-							</div>
-						{/each}
-					</div>
-				{/if}
-				<button
-					onclick={() => (showLockList = false)}
-					class="px-4 py-2 bg-secondary text-text border border-border"
-				>
-					Close
-				</button>
-			</div>
-		</div>
-	{/if}
 
 	<!-- Create Lock Modal -->
 	{#if showCreateForm}
@@ -460,14 +398,6 @@
 			{#if currentLock.description}
 				<p class="text-sm text-text mt-2">{currentLock.description}</p>
 			{/if}
-		</div>
-	{:else}
-		<div
-			class="card border border-border dark:border-border p-6 mb-6 bg-surface text-center"
-		>
-			<p class="text-text">
-				Load an existing lock or create a new one to get started.
-			</p>
 		</div>
 	{/if}
 
