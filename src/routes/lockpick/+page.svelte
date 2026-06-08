@@ -399,6 +399,28 @@
 				<p class="text-sm text-text mt-2">{currentLock.description}</p>
 			{/if}
 		</div>
+	{:else}
+		<!-- Lock List when no lock is loaded -->
+		<div class="mb-6">
+			<h2 class="text-2xl font-semibold mb-4">Select a Lock</h2>
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+				{#each locks as lock}
+					<button
+						onclick={() => loadLock(lock)}
+						class="card border border-border dark:border-border p-4 text-left hover:border-primary transition-colors"
+					>
+						<h3 class="font-semibold text-lg mb-1">{lock.name}</h3>
+						<p class="text-sm text-muted mb-2">
+							{lock.description}
+						</p>
+						<p class="text-xs text-muted">{lock.location}</p>
+						<p class="text-xs text-muted mt-2">
+							{lock.numTumblers} tumblers
+						</p>
+					</button>
+				{/each}
+			</div>
+		</div>
 	{/if}
 
 	{#if currentLock}
