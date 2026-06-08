@@ -505,7 +505,7 @@
 										class="px-2 py-1 bg-secondary text-text border border-border text-xs"
 										disabled={tumblerPositions[
 											displayIndex
-										] === 1}
+										] === currentLock.numHoles}
 									>
 										←
 									</button>
@@ -515,7 +515,7 @@
 										class="px-2 py-1 bg-secondary text-text border border-border text-xs"
 										disabled={tumblerPositions[
 											displayIndex
-										] === currentLock.numHoles}
+										] === 1}
 									>
 										→
 									</button>
