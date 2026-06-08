@@ -162,11 +162,11 @@
 	function moveTumbler(index: number, direction: "left" | "right") {
 		if (!currentLock) return;
 		const currentPos = tumblerPositions[index];
-		const centerIndex = Math.floor(currentLock.numHoles / 2) + 1; // 1-based center (4 for 7 holes)
+		const maxPos = currentLock.numHoles; // 7 for 7 holes
 		let newPos = direction === "left" ? currentPos - 1 : currentPos + 1;
 
-		// Clamp to valid range - cannot move past center position
-		newPos = Math.max(1, Math.min(centerIndex, newPos));
+		// Clamp to valid range (1 to numHoles)
+		newPos = Math.max(1, Math.min(maxPos, newPos));
 
 		if (newPos !== currentPos) {
 			tumblerPositions[index] = newPos;
@@ -176,7 +176,7 @@
 
 	function applyLinks(triggerIndex: number) {
 		if (!currentLock) return;
-		const centerIndex = Math.floor(currentLock.numHoles / 2) + 1; // 1-based center (4 for 7 holes)
+		const maxPos = currentLock.numHoles; // 7 for 7 holes
 
 		// Find all links that start from the moved tumbler
 		const triggeredLinks = (currentLock.links || []).filter(
@@ -186,7 +186,7 @@
 		for (const link of triggeredLinks) {
 			const currentPos = tumblerPositions[link.to];
 			let newPos = link.reversed ? currentPos - 1 : currentPos + 1;
-			newPos = Math.max(1, Math.min(centerIndex, newPos));
+			newPos = Math.max(1, Math.min(maxPos, newPos));
 
 			if (newPos !== currentPos) {
 				tumblerPositions[link.to] = newPos;
@@ -501,7 +501,7 @@
 								<div class="flex gap-2 ml-auto">
 									<button
 										onclick={() =>
-											moveTumbler(displayIndex, "left")}
+											moveTumbler(displayIndex, "right")}
 										class="px-2 py-1 bg-secondary text-text border border-border text-xs"
 										disabled={tumblerPositions[
 											displayIndex
@@ -511,15 +511,11 @@
 									</button>
 									<button
 										onclick={() =>
-											moveTumbler(displayIndex, "right")}
+											moveTumbler(displayIndex, "left")}
 										class="px-2 py-1 bg-secondary text-text border border-border text-xs"
 										disabled={tumblerPositions[
 											displayIndex
-										] ===
-											Math.floor(
-												currentLock.numHoles / 2,
-											) +
-												1}
+										] === currentLock.numHoles}
 									>
 										→
 									</button>
