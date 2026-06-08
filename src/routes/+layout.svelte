@@ -42,14 +42,15 @@
 	});
 
 	const siteLinks = [
-		{ label: 'Home', href: '/', current: $page.url.pathname === '/' }
+		{ label: 'Home', href: '/', current: $page.url.pathname === '/' },
+		{ label: 'Lockpick', href: '/lockpick', current: $page.url.pathname === '/lockpick' }
 	];
 
 	const siteMenu: MenuItem[] = [
 		{
 			title: 'Tools',
 			children: [
-				{ title: 'Coming Soon', link: '/' }
+				{ title: 'Lockpick Solver', link: '/lockpick' }
 			]
 		},
 		{
