@@ -1,12 +1,10 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { writable } from 'svelte/store';
 	import { Card, Button, Input } from 'twintrinsic';
 	import { colorThemes, defaultTheme, getThemeFromCustomColor, type ColorTheme } from '$lib/theme';
 
 	const STORAGE_KEY = 'gothic-remake-tools-theme';
-
-	let selectedTheme = $state(0);
-	let useCustom = $state(false);
-	let customColor = $state('#d4af37');
 
 	function loadFromStorage() {
 		if (typeof window === 'undefined') return null;
@@ -18,13 +16,25 @@
 		}
 	}
 
-	function saveToStorage(settings: { selectedTheme: number; useCustom: boolean; customColor: string }) {
+	function saveToStorage(data: { selectedTheme: number; customColor: string; useCustom: boolean }) {
 		if (typeof window === 'undefined') return;
 		try {
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 		} catch {
-			// Ignore storage errors
+			// Storage might be disabled or full
 		}
+	}
+
+	const stored = loadFromStorage();
+	const selectedTheme = writable<number>(stored?.selectedTheme ?? 0);
+	const customColor = writable<string>(stored?.customColor ?? '#d4af37');
+	const useCustom = writable<boolean>(stored?.useCustom ?? false);
+
+	function getCurrentTheme(): ColorTheme {
+		if ($useCustom) {
+			return getThemeFromCustomColor($customColor);
+		}
+		return colorThemes[$selectedTheme];
 	}
 
 	function applyTheme(theme: ColorTheme) {
@@ -36,34 +46,23 @@
 		document.documentElement.style.setProperty('--theme-text', theme.text);
 	}
 
+	onMount(() => {
+		applyTheme(getCurrentTheme());
+	});
+
+	$effect(() => {
+		applyTheme(getCurrentTheme());
+		saveToStorage({ selectedTheme: $selectedTheme, customColor: $customColor, useCustom: $useCustom });
+	});
+
 	function selectTheme(index: number) {
-		selectedTheme = index;
-		useCustom = false;
-		applyTheme(colorThemes[index]);
-		saveToStorage({ selectedTheme: index, useCustom: false, customColor });
+		useCustom.set(false);
+		selectedTheme.set(index);
 	}
 
 	function applyCustomTheme() {
-		useCustom = true;
-		const theme = getThemeFromCustomColor(customColor);
-		applyTheme(theme);
-		saveToStorage({ selectedTheme, useCustom: true, customColor });
+		useCustom.set(true);
 	}
-
-	// Load saved theme on mount
-	$effect(() => {
-		const stored = loadFromStorage();
-		if (stored) {
-			selectedTheme = stored.selectedTheme;
-			useCustom = stored.useCustom;
-			customColor = stored.customColor;
-			if (stored.useCustom) {
-				applyTheme(getThemeFromCustomColor(stored.customColor));
-			} else {
-				applyTheme(colorThemes[stored.selectedTheme]);
-			}
-		}
-	});
 </script>
 
 <div class="p-8 max-w-4xl mx-auto">
@@ -73,8 +72,8 @@
 		<h2 class="text-2xl font-semibold mb-4">Pre-configured Themes</h2>
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 			{#each colorThemes as theme, i}
-				<Card
-					class="cursor-pointer transition-all hover:scale-105 {selectedTheme === i && !useCustom ? 'ring-2 ring-primary' : ''}"
+				<div
+					class="card border border-border dark:border-border cursor-pointer transition-all hover:scale-105 {$selectedTheme === i && !$useCustom ? 'ring-2 ring-primary' : ''}"
 					onclick={() => selectTheme(i)}
 				>
 					<div class="p-4">
@@ -108,34 +107,39 @@
 							></div>
 						</div>
 					</div>
-				</Card>
+				</div>
 			{/each}
 		</div>
 	</section>
 
 	<section>
 		<h2 class="text-2xl font-semibold mb-4">Custom Theme</h2>
-		<Card class="p-6">
+		<div class="card border border-border dark:border-border p-6">
 			<div class="flex flex-col gap-4">
 				<div>
 					<label for="customColor" class="block mb-2 font-medium">Primary Color</label>
 					<div class="flex gap-3">
-						<Input
+						<input
 							id="customColor"
 							type="color"
-							bind:value={customColor}
-							class="w-16 h-10 cursor-pointer"
+							bind:value={$customColor}
+							class="w-16 h-10 cursor-pointer border border-border"
 						/>
-						<Input
+						<input
 							type="text"
-							bind:value={customColor}
+							bind:value={$customColor}
 							placeholder="#d4af37"
-							class="flex-1"
+							class="flex-1 px-3 py-2 border border-border bg-background text-text"
 						/>
 					</div>
 				</div>
-				<Button onclick={applyCustomTheme}>Apply Custom Theme</Button>
+				<button
+					onclick={applyCustomTheme}
+					class="px-4 py-2 bg-primary text-text border border-primary font-medium"
+				>
+					Apply Custom Theme
+				</button>
 			</div>
-		</Card>
+		</div>
 	</section>
 </div>
