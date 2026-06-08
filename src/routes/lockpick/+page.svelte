@@ -443,7 +443,7 @@
 				>
 					<div class="flex flex-col gap-4">
 						{#each Array(currentLock.numTumblers) as _, i}
-							// Display index reverses order so T1 appears at top
+							<!-- // Display index reverses order so T1 appears at top -->
 							{@const displayIndex =
 								currentLock.numTumblers - 1 - i}
 							<div class="flex items-center gap-2">
@@ -456,28 +456,24 @@
 								></div>
 								<!-- Horizontal tumbler with holes (left to right) -->
 								<!-- Center pin always at center of display (hole 3) -->
-								<!-- Tumbler extends 2 positions beyond left edge (off-screen) -->
+								<!-- Tumbler material shifts based on position value -->
 								<div class="flex gap-1 items-center">
 									{#each Array(currentLock.numHoles) as _, j}
-										// True if this is the center hole (hole
-										3 for 7 holes)
+										<!-- // True if this is the center hole (hole 3 for 7 holes) -->
 										{@const isCenterHole =
 											j ===
 											Math.floor(
 												currentLock.numHoles / 2,
 											)}
-										// Current position of center pin for this
-										tumbler (0-6)
+										<!-- // Current position value (0-6) determining tumbler extent -->
 										{@const centerPinPos =
 											tumblerPositions[displayIndex]}
-										// Tumbler position accounting for 2-position
-										offset beyond left edge
-										{@const tumblerPos = j - 2}
-										// Hole is filled if tumbler material exists
-										at this position
+										<!-- // Hole is filled if within tumbler material range -->
+										<!-- // Range is [4 - position, 10 - position] clamped to [0, 6] -->
 										{@const isVisible =
-											tumblerPos >= 0 &&
-											tumblerPos < centerPinPos}
+											j >=
+												Math.max(0, 4 - centerPinPos) &&
+											j <= Math.min(6, 10 - centerPinPos)}
 										<div
 											class="w-8 h-8 border-border hole hole-{j} {isVisible
 												? 'bg-primary border-2'
