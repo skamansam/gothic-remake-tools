@@ -162,11 +162,11 @@
 	function moveTumbler(index: number, direction: "left" | "right") {
 		if (!currentLock) return;
 		const currentPos = tumblerPositions[index];
-		const centerIndex = Math.floor(currentLock.numHoles / 2);
+		const centerIndex = Math.floor(currentLock.numHoles / 2) + 1; // 1-based center (4 for 7 holes)
 		let newPos = direction === "left" ? currentPos - 1 : currentPos + 1;
 
 		// Clamp to valid range - cannot move past center position
-		newPos = Math.max(0, Math.min(centerIndex, newPos));
+		newPos = Math.max(1, Math.min(centerIndex, newPos));
 
 		if (newPos !== currentPos) {
 			tumblerPositions[index] = newPos;
@@ -176,7 +176,7 @@
 
 	function applyLinks(triggerIndex: number) {
 		if (!currentLock) return;
-		const centerIndex = Math.floor(currentLock.numHoles / 2);
+		const centerIndex = Math.floor(currentLock.numHoles / 2) + 1; // 1-based center (4 for 7 holes)
 
 		// Find all links that start from the moved tumbler
 		const triggeredLinks = (currentLock.links || []).filter(
@@ -186,7 +186,7 @@
 		for (const link of triggeredLinks) {
 			const currentPos = tumblerPositions[link.to];
 			let newPos = link.reversed ? currentPos - 1 : currentPos + 1;
-			newPos = Math.max(0, Math.min(centerIndex, newPos));
+			newPos = Math.max(1, Math.min(centerIndex, newPos));
 
 			if (newPos !== currentPos) {
 				tumblerPositions[link.to] = newPos;
@@ -465,11 +465,11 @@
 											Math.floor(
 												currentLock.numHoles / 2,
 											)}
-										<!-- // Current position value (0-6) determining tumbler extent -->
+										<!-- // Current position value (1-7) determining tumbler extent -->
 										{@const centerPinPos =
 											tumblerPositions[displayIndex]}
 										<!-- // Hole is filled if within tumbler material range -->
-										<!-- // Range is [4 - position, 10 - position] clamped to [0, 6] -->
+										<!-- // Range is [4 - position, 10 - position] clamped to [0, 6] for 1-based positions -->
 										{@const isVisible =
 											j >=
 												Math.max(0, 4 - centerPinPos) &&
@@ -482,7 +482,7 @@
 											{#if isCenterHole}
 												<div
 													class="w-2 h-2 {centerPinPos ===
-													Math.floor(
+													Math.ceil(
 														currentLock.numHoles /
 															2,
 													)
@@ -505,7 +505,7 @@
 										class="px-2 py-1 bg-secondary text-text border border-border text-xs"
 										disabled={tumblerPositions[
 											displayIndex
-										] === 0}
+										] === 1}
 									>
 										←
 									</button>
@@ -518,7 +518,8 @@
 										] ===
 											Math.floor(
 												currentLock.numHoles / 2,
-											)}
+											) +
+												1}
 									>
 										→
 									</button>

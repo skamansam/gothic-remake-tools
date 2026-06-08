@@ -66,5 +66,29 @@
 				"reversed": false
 			}
 		]
+	},
+	{
+		"id": "test",
+		"name": "Test Lock",
+		"description": "Just for testing",
+		"location": "Off-screen",
+		"numTumblers": 7,
+		"numHoles": 7,
+		"startingPositions": [
+			1,
+			2,
+			3,
+			4,
+			5,
+			6,
+			7
+		],
+		"links": [
+			{
+				"from": 0,
+				"to": 1,
+				"reversed": true
+			}
+		]
 	}
 ]
