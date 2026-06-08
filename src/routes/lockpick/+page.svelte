@@ -1,19 +1,23 @@
 <script lang="ts">
+	import defaultLocksUntyped from "$lib/data/locks.json";
+
 	interface Lock {
 		id: string;
 		name: string;
 		description: string;
 		location: string;
 		numTumblers: number;
+		numHoles: number;
 		startingPositions: number[];
-		links: Array<{ from: number; to: number; direction: "left" | "right" }>;
+		links: Array<{ from: number; to: number; reversed: boolean }>;
 	}
 
 	const STORAGE_KEY = "gothic-remake-tools-locks";
 
 	const NUM_HOLES = 7;
 
-	// Lock list
+	// Lock list - load from localStorage with defaults
+	const defaultLocks = defaultLocksUntyped as Lock[];
 	let locks = $state<Lock[]>([]);
 	let currentLock = $state<Lock | null>(null);
 
@@ -31,7 +35,7 @@
 	// Link creation state
 	let linkFrom = $state<number | null>(null);
 	let linkTo = $state<number | null>(null);
-	let linkDirection = $state<"left" | "right">("right");
+	let linkReversed = $state(false);
 
 	// UI state
 	let showCreateForm = $state(false);
@@ -42,10 +46,21 @@
 		try {
 			const stored = localStorage.getItem(STORAGE_KEY);
 			if (stored) {
-				locks = JSON.parse(stored);
+				const userLocks = JSON.parse(stored) as Lock[];
+				// Merge default locks with user locks, keeping user locks if they have the same ID
+				const userLockIds = new Set(userLocks.map((l) => l.id));
+				const mergedLocks = [
+					...defaultLocks.filter((l) => !userLockIds.has(l.id)),
+					...userLocks,
+				];
+				locks = mergedLocks;
+			} else {
+				// No user locks, use defaults
+				locks = [...defaultLocks];
 			}
 		} catch {
-			locks = [];
+			// On error, use defaults
+			locks = [...defaultLocks];
 		}
 	}
 
@@ -81,6 +96,7 @@
 			description: lockDescription,
 			location: lockLocation,
 			numTumblers,
+			numHoles: NUM_HOLES,
 			startingPositions: parsedPositions,
 			links: [],
 		};
@@ -138,11 +154,12 @@
 	}
 
 	function moveTumbler(index: number, direction: "left" | "right") {
+		if (!currentLock) return;
 		const currentPos = tumblerPositions[index];
 		let newPos = direction === "left" ? currentPos - 1 : currentPos + 1;
 
 		// Clamp to valid range
-		newPos = Math.max(0, Math.min(NUM_HOLES - 1, newPos));
+		newPos = Math.max(0, Math.min(currentLock.numHoles - 1, newPos));
 
 		if (newPos !== currentPos) {
 			tumblerPositions[index] = newPos;
@@ -160,9 +177,8 @@
 
 		for (const link of triggeredLinks) {
 			const currentPos = tumblerPositions[link.to];
-			let newPos =
-				link.direction === "left" ? currentPos - 1 : currentPos + 1;
-			newPos = Math.max(0, Math.min(NUM_HOLES - 1, newPos));
+			let newPos = link.reversed ? currentPos - 1 : currentPos + 1;
+			newPos = Math.max(0, Math.min(currentLock.numHoles - 1, newPos));
 
 			if (newPos !== currentPos) {
 				tumblerPositions[link.to] = newPos;
@@ -186,18 +202,19 @@
 			(l) =>
 				l.from === linkFrom &&
 				l.to === linkTo &&
-				l.direction === linkDirection,
+				l.reversed === linkReversed,
 		);
 		if (!exists) {
 			currentLock.links = [
 				...(currentLock.links || []),
-				{ from: linkFrom, to: linkTo, direction: linkDirection },
+				{ from: linkFrom, to: linkTo, reversed: linkReversed },
 			];
 			updateCurrentLock();
 		}
 		// Reset selection
 		linkFrom = null;
 		linkTo = null;
+		linkReversed = false;
 	}
 
 	function removeLink(index: number) {
@@ -418,50 +435,70 @@
 				<div
 					class="card border border-border dark:border-border p-6 mb-6"
 				>
-					<div class="space-y-4">
+					<div class="flex flex-col gap-4">
 						{#each Array(currentLock.numTumblers) as _, i}
-							<div class="flex items-center gap-4">
-								<!-- Bolt indicator -->
+							{@const displayIndex =
+								currentLock.numTumblers - 1 - i}
+							<div class="flex items-center gap-2">
+								<span class="font-mono font-bold w-8"
+									>T{displayIndex + 1}</span
+								>
+								<!-- Bolt indicator on left -->
 								<div
 									class="w-4 h-8 bg-secondary border-2 border-border rounded-l"
 								></div>
-								<span class="w-8 font-mono font-bold"
-									>T{i + 1}</span
-								>
-								<div class="flex-1 flex gap-1">
-									{#each Array(NUM_HOLES) as _, j}
+								<!-- Horizontal tumbler with holes (left to right: bottom to top) -->
+								<div class="flex gap-1 items-center">
+									{#each Array(currentLock.numHoles) as _, j}
+										{@const isCenterHole =
+											j ===
+											Math.floor(
+												currentLock.numHoles / 2,
+											)}
+										{@const isVisible =
+											j >= tumblerPositions[displayIndex]}
+										<!-- Show holes to the right of position, and center hole even if to the left -->
 										<div
-											class="h-8 flex-1 border-2 {tumblerPositions[
-												i
-											] === j
-												? 'bg-primary border-primary'
-												: 'bg-surface border-border'}"
+											class="w-8 h-8 border-2 hole hole-{j} {isVisible
+												? 'bg-primary'
+												: 'bg-surface'} border-border flex items-center justify-center"
 										>
-											{#if tumblerPositions[i] === j}
+											{#if isCenterHole}
 												<div
-													class="w-full h-full flex items-center justify-center"
-												>
-													<div
-														class="w-2 h-2 bg-text rounded-full"
-													></div>
-												</div>
+													class="w-2 h-2 {tumblerPositions[
+														displayIndex
+													] === 0
+														? 'bg-text'
+														: 'bg-surface border border-border'} rounded-full"
+												></div>
 											{/if}
 										</div>
 									{/each}
 								</div>
-								<div class="flex gap-2">
+								<!-- Center dot (single per tumbler row) -->
+								<div
+									class="w-8 h-8 flex items-center justify-center"
+								></div>
+								<!-- Move arrows aligned to right -->
+								<div class="flex gap-2 ml-auto">
 									<button
-										onclick={() => moveTumbler(i, "left")}
-										class="px-3 py-1 bg-secondary text-text border border-border text-sm"
-										disabled={tumblerPositions[i] === 0}
+										onclick={() =>
+											moveTumbler(displayIndex, "right")}
+										class="px-2 py-1 bg-secondary text-text border border-border text-xs"
+										disabled={tumblerPositions[
+											displayIndex
+										] === 0}
 									>
 										←
 									</button>
 									<button
-										onclick={() => moveTumbler(i, "right")}
-										class="px-3 py-1 bg-secondary text-text border border-border text-sm"
-										disabled={tumblerPositions[i] ===
-											NUM_HOLES - 1}
+										onclick={() =>
+											moveTumbler(displayIndex, "left")}
+										class="px-2 py-1 bg-secondary text-text border border-border text-xs"
+										disabled={tumblerPositions[
+											displayIndex
+										] ===
+											currentLock.numHoles - 1}
 									>
 										→
 									</button>
@@ -533,29 +570,21 @@
 						</div>
 
 						<div>
-							<label class="block mb-2 font-medium"
-								>Direction</label
+							<label
+								class="flex items-center gap-2 mb-2 font-medium"
 							>
-							<div class="flex gap-2">
-								<button
-									class="px-4 py-2 border border-border {linkDirection ===
-									'left'
-										? 'bg-primary text-text'
-										: 'bg-surface text-text'}"
-									onclick={() => (linkDirection = "left")}
-								>
-									← Left
-								</button>
-								<button
-									class="px-4 py-2 border border-border {linkDirection ===
-									'right'
-										? 'bg-primary text-text'
-										: 'bg-surface text-text'}"
-									onclick={() => (linkDirection = "right")}
-								>
-									Right →
-								</button>
-							</div>
+								<input
+									type="checkbox"
+									bind:checked={linkReversed}
+									class="w-4 h-4"
+								/>
+								<span>Reversed Direction</span>
+							</label>
+							<p class="text-xs text-text">
+								When checked, moving the source tumbler will
+								move the target tumbler in the opposite
+								direction.
+							</p>
 						</div>
 
 						<button
@@ -580,7 +609,8 @@
 									class="flex items-center justify-between p-2 bg-surface border border-border"
 								>
 									<span class="font-mono">
-										T{link.from + 1} → T{link.to + 1} ({link.direction})
+										T{link.from + 1} → T{link.to + 1}
+										{link.reversed ? " (reversed)" : ""}
 									</span>
 									<button
 										onclick={() => removeLink(i)}
