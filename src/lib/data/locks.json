@@ -67,6 +67,60 @@
 			}
 		]
 	},
+		{
+		"id": "castle-hill",
+		"name": "Castle On the Hill",
+		"description": "Ruined Castle tower on hill west of Old Camp",
+		"location": "Old Camp Exterior",
+		"numTumblers": 6,
+		"numHoles": 7,
+		"startingPositions": [
+			5,
+			6,
+			2,
+			2,
+			1,
+			1
+		],
+		"links": [
+			{
+				"from": 1,
+				"to": 2,
+				"reversed": true
+			},
+			{
+				"from": 1,
+				"to": 4,
+				"reversed": false
+			},
+			{
+				"from": 2,
+				"to": 3,
+				"reversed": false
+			},
+			{
+				"from": 4,
+				"to": 1,
+				"reversed": false
+			},
+			{
+				"from": 4,
+				"to": 5,
+				"reversed": true
+			},
+
+			{
+				"from": 5,
+				"to": 0,
+				"reversed": true
+			},
+			{
+				"from": 5,
+				"to": 1,
+				"reversed": false
+			}
+		]
+	},
 	{
 		"id": "test",
 		"name": "Test Lock",
