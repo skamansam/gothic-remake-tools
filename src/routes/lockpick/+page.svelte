@@ -38,6 +38,10 @@
 			sessionStorage.removeItem("lockWarning");
 		}
 	});
+
+	function handleLockCreated() {
+		showCreateForm = false;
+	}
 </script>
 
 <div class="p-8 max-w-6xl mx-auto">
@@ -76,7 +80,7 @@
 			<div
 				class="card border border-border dark:border-border p-6 max-w-2xl w-full mx-4 bg-surface"
 			>
-				<NewLockpick onCreate={() => { showCreateForm = false; }} />
+				<NewLockpick onCreate={handleLockCreated} />
 			</div>
 		</div>
 	{/if}

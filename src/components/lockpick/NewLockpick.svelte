@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { GothicLock } from "./index";
-    import { createLock as createLockStorage, slugify } from "./index";
+    import { createLock as createLockStorage } from "./index";
+    import { slugify } from "$lib/storage";
 
 	// Lock creation form input fields
 	let lockName = $state(""); // Name of new lock being created

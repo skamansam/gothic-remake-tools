@@ -1,4 +1,5 @@
 import type { StorageAdapter, StorageItem } from './types';
+import { slugify } from './index';
 
 /**
  * LocalStorage implementation of StorageAdapter
@@ -8,10 +9,12 @@ export class LocalStorageAdapter<T extends StorageItem> implements StorageAdapte
 	private prefix: string;
 	private initialData?: T[];
 	private initialized = false;
+	private slugifyIds: boolean;
 
-	constructor(prefix: string, initialData?: T[]) {
+	constructor(prefix: string, initialData?: T[], slugifyIds = true) {
 		this.prefix = prefix;
 		this.initialData = initialData;
+		this.slugifyIds = slugifyIds;
 	}
 
 	private initialize(): void {
@@ -58,8 +61,12 @@ export class LocalStorageAdapter<T extends StorageItem> implements StorageAdapte
 		this.initialize();
 		if (typeof window === 'undefined') return item;
 		
-		localStorage.setItem(this.getKey(item.id), JSON.stringify(item));
-		return item;
+		// Slugify the ID if enabled
+		const itemId = this.slugifyIds ? slugify(item.id) : item.id;
+		const itemWithSlugifiedId = { ...item, id: itemId } as T;
+		
+		localStorage.setItem(this.getKey(itemId), JSON.stringify(itemWithSlugifiedId));
+		return itemWithSlugifiedId;
 	}
 
 	async update(id: string, updates: Partial<T>): Promise<T | null> {
