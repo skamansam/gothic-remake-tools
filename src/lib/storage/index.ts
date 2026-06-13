@@ -1,8 +1,10 @@
+import { LocalStorageAdapter } from './local-storage';
+
 export type { StorageAdapter, StorageItem, SearchOptions } from './types';
 export { LocalStorageAdapter } from './local-storage';
-export { SupabaseAdapter } from './supabase';
-export { FirebaseAdapter } from './firebase';
-export { AlgoliaSearchAdapter } from './algolia';
+// export { SupabaseAdapter } from './supabase';
+// export { FirebaseAdapter } from './firebase';
+// export { AlgoliaSearchAdapter } from './algolia';
 
 /**
  * Slugify a text string to create URL-friendly IDs
@@ -16,3 +18,9 @@ export function slugify(text: string): string {
         .replace(/[\s_-]+/g, '-')
         .replace(/^-+|-+$/g, '');
 }
+
+/**
+ * Current storage backend instance
+ * Change this to switch between different storage implementations
+ */
+export const storageBackend = new LocalStorageAdapter('storage'); // Default to localStorage

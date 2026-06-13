@@ -4,9 +4,9 @@
 		LockpickList,
 		LockpickSolver,
 		NewLockpick,
+		getLock,
 	} from "../../components/lockpick/index";
 	import type { GothicLock } from "../../components/lockpick/index";
-	import { getLock } from "../../components/lockpick/index";
 
 	// Default number of holes per tumbler (configurable per lock)
 	const NUM_HOLES = 7;
@@ -85,5 +85,10 @@
 		</div>
 	{/if}
 	<LockpickList />
+
+	<!-- Lock Solver -->
+	{#if currentLock}
+		<LockpickSolver lockId={currentLock.id} />
+	{/if}
 
 </div>

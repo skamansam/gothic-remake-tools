@@ -6,11 +6,6 @@ import { LocalStorageAdapter, slugify } from '$lib/storage';
 import locksData from '$lib/data/locks.json';
 
 export const LOCKS_PREFIX = 'locks';
-export const LOCKS_STORAGE_KEY = LOCKS_PREFIX; // Legacy alias for compatibility
-
-// Create storage adapter with initial data from JSON file
-// Disable slugifyIds since JSON data already has proper IDs
-const lockStorage = new LocalStorageAdapter<GothicLock>(LOCKS_PREFIX, locksData as GothicLock[], false);
 
 export interface GothicLock {
     id: string;
@@ -23,6 +18,14 @@ export interface GothicLock {
     links: Array<{ from: number; to: number; reversed: boolean }>;
 }
 
+// Create lock-specific storage adapter
+// Disable slugifyIds since JSON data already has proper IDs
+const lockStorage = new LocalStorageAdapter<GothicLock>(LOCKS_PREFIX, locksData as GothicLock[], false);
+
+// Export the storage adapter instance for direct use
+export { lockStorage };
+
+// Helper functions for lock storage operations
 export async function getAllLocks(): Promise<GothicLock[]> {
     return await lockStorage.getAll();
 }
@@ -52,3 +55,4 @@ export async function lockExists(lockId: string): Promise<boolean> {
 }
 
 export { slugify } from '$lib/storage';
+
