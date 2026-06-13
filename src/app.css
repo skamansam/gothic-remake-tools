@@ -10,12 +10,11 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Gothic Gold Theme - Default */
   --theme-primary: #d4af37;
-  --theme-secondary: #8b6914;
-  --theme-accent: #f4d03f;
+  --theme-secondary: rgb(20, 7, 5);
+  --theme-accent: #ecebe8;
   --theme-bg: #1a1a1a;
-  --theme-border: #b8860b;
+  --theme-border: #ecebe8;
   --theme-text: #e8e8e8;
 }
 

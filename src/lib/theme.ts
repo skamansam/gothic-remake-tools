@@ -10,12 +10,12 @@ export interface ColorTheme {
 
 export const colorThemes: ColorTheme[] = [
   {
-    name: 'Gothic Gold',
+    name: 'Gothic Wiki',
     primary: '#d4af37',
-    secondary: '#8b6914',
-    accent: '#f4d03f',
+    secondary: 'rgb(20, 7, 5)',
+    accent: '#ecebe8',
     bg: '#1a1a1a',
-    border: '#b8860b',
+    border: '#ecebe8',
     text: '#e8e8e8'
   },
   {
@@ -65,7 +65,7 @@ export const colorThemes: ColorTheme[] = [
   }
 ];
 
-export const defaultTheme = colorThemes[0]; // Gothic Gold
+export const defaultTheme = colorThemes[0];
 
 export function adjustBrightness(hex: string, percent: number): string {
   const num = parseInt(hex.replace('#', ''), 16);
