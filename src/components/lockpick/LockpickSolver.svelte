@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { GothicLock, SolverMove, SolverResult } from "./index";
+    import type { GothicLock, SolverMove, SolverResult, SolverAlgorithm } from "./index";
     import { getLock, updateLock, solveLock } from "./index";
     import { onMount } from "svelte";
 
@@ -22,6 +22,7 @@
     let solverResult = $state<SolverResult | null>(null);
     let currentStep = $state(0);
     let showSolver = $state(false);
+    let solverAlgorithm = $state<SolverAlgorithm>("astar");
 
     onMount(async () => {
         const lock = await getLock(lockId);
@@ -190,7 +191,8 @@
         solverResult = solveLock(
             tumblerPositions,
             currentLock.links || [],
-            currentLock.numHoles
+            currentLock.numHoles,
+            solverAlgorithm
         );
         currentStep = 0;
         showSolver = true;
@@ -312,7 +314,7 @@
 				</div>
 			</div>
 
-			<div class="flex gap-4 mb-6">
+			<div class="flex gap-4 mb-6 flex-wrap">
 				<button
 					onclick={resetTumblers}
 					class="px-4 py-2 bg-secondary text-text border border-border"
@@ -325,12 +327,22 @@
 				>
 					Save Positions
 				</button>
-				<button
-					onclick={runSolver}
-					class="px-4 py-2 bg-success text-text border border-success"
-				>
-					Auto Solve
-				</button>
+				<div class="flex items-center border border-border overflow-hidden">
+					<button
+						onclick={runSolver}
+						class="px-4 py-2 bg-success text-text border-r border-border"
+					>
+						Auto Solve
+					</button>
+					<button
+						onclick={() => solverAlgorithm = solverAlgorithm === 'astar' ? 'bfs' : 'astar'}
+						class="px-3 py-2 bg-surface text-text text-xs font-mono"
+						title={solverAlgorithm === 'astar' ? 'Using A* (faster). Click to switch to BFS.' : 'Using BFS (exhaustive). Click to switch to A*.'}
+						aria-label="Toggle solver algorithm"
+					>
+						{solverAlgorithm === 'astar' ? 'A*' : 'BFS'}
+					</button>
+				</div>
 			</div>
 
 			<!-- Solver Results -->
@@ -342,6 +354,9 @@
 						{solverResult.solvable
 							? "Solution Found"
 							: "No Solution"}
+						<span class="text-xs font-mono font-normal opacity-60 ml-2">
+							({solverAlgorithm === 'astar' ? 'A*' : 'BFS'})
+						</span>
 					</h3>
 					{#if solverResult.solvable}
 						<p class="text-sm text-text mb-4">
