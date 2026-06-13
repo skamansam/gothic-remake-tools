@@ -1,6 +1,6 @@
 <script lang="ts">
-    import type { GothicLock } from "./index";
-    import { getLock, updateLock } from "./index";
+    import type { GothicLock, SolverMove, SolverResult } from "./index";
+    import { getLock, updateLock, solveLock } from "./index";
     import { onMount } from "svelte";
 
     interface Props {
@@ -17,6 +17,11 @@
     let linkFrom = $state<number | null>(null); // Source tumbler index (0-based)
     let linkTo = $state<number | null>(null); // Target tumbler index (0-based)
     let linkReversed = $state(false); // Whether link direction is reversed (opposite movement)
+
+    // Solver state
+    let solverResult = $state<SolverResult | null>(null);
+    let currentStep = $state(0);
+    let showSolver = $state(false);
 
     onMount(async () => {
         const lock = await getLock(lockId);
@@ -114,6 +119,32 @@
             (_, i) => i !== index,
         );
         updateCurrentLock();
+    }
+
+    function runSolver() {
+        if (!currentLock) return;
+        solverResult = solveLock(
+            tumblerPositions,
+            currentLock.links || [],
+            currentLock.numHoles
+        );
+        currentStep = 0;
+        showSolver = true;
+    }
+
+    function applySolutionStep() {
+        if (!solverResult || currentStep >= solverResult.moves.length) return;
+
+        const move = solverResult.moves[currentStep];
+        moveTumbler(move.tumblerIndex, move.direction);
+        currentStep++;
+    }
+
+    function resetSolver() {
+        solverResult = null;
+        currentStep = 0;
+        showSolver = false;
+        resetTumblers();
     }
 </script>
 
@@ -234,7 +265,78 @@
 				>
 					Save Positions
 				</button>
+				<button
+					onclick={runSolver}
+					class="px-4 py-2 bg-success text-text border border-success"
+				>
+					Auto Solve
+				</button>
 			</div>
+
+			<!-- Solver Results -->
+			{#if showSolver && solverResult}
+				<div
+					class="card border border-border dark:border-border p-6 mb-6"
+				>
+					<h3 class="font-semibold mb-4">
+						{solverResult.solvable
+							? "Solution Found"
+							: "No Solution"}
+					</h3>
+					{#if solverResult.solvable}
+						<p class="text-sm text-text mb-4">
+							{solverResult.moves.length} steps required
+						</p>
+						<div class="space-y-2 mb-4">
+							{#each solverResult.moves as move, i}
+								<div
+									class="flex items-center justify-between p-2 {i === currentStep
+										? 'bg-primary text-text'
+										: i < currentStep
+											? 'bg-success text-text'
+											: 'bg-surface text-text'} border border-border"
+								>
+									<span class="font-mono">
+										Step {i + 1}: Move T{move.tumblerIndex + 1}
+										{move.direction === "left"
+											? " right (→)"
+											: " left (←)"}
+									</span>
+									<span class="text-xs">
+										Positions: {move.positionsAfter.join(", ")}
+									</span>
+								</div>
+							{/each}
+						</div>
+						<div class="flex gap-2">
+							<button
+								onclick={applySolutionStep}
+								disabled={currentStep >=
+									solverResult.moves.length}
+								class="px-4 py-2 bg-primary text-text border border-primary disabled:opacity-50"
+							>
+								{currentStep >= solverResult.moves.length
+									? "Complete"
+									: "Apply Next Step"}
+							</button>
+							<button
+								onclick={resetSolver}
+								class="px-4 py-2 bg-secondary text-text border border-border"
+							>
+								Reset
+							</button>
+						</div>
+					{:else}
+						<p class="text-text">{solverResult.message}</p>
+						<button
+							onclick={resetSolver}
+							class="mt-4 px-4 py-2 bg-secondary text-text border border-border"
+						>
+							Close
+						</button>
+					{/if}
+				</div>
+			{/if}
 		</section>
 
 		<!-- Link Configuration -->
