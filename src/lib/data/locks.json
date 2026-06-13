@@ -144,5 +144,18 @@
 				"reversed": true
 			}
 		]
+	},
+	{
+		"id": "simple-test",
+		"name": "Simple Test",
+		"description": "Simple 2-tumbler lock for testing",
+		"location": "Test",
+		"numTumblers": 2,
+		"numHoles": 7,
+		"startingPositions": [
+			4,
+			5
+		],
+		"links": []
 	}
 ]

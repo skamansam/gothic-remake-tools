@@ -1,0 +1,6 @@
+{
+  "buildCommand": "pnpm install && pnpm build",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": null,
+  "outputDirectory": ".svelte-kit/output"
+}

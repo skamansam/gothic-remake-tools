@@ -80,7 +80,7 @@ export function solveLock(
     links: Array<{ from: number; to: number; reversed: boolean }>,
     numHoles: number
 ): SolverResult {
-    const centerPos = Math.floor(numHoles / 2);
+    const centerPos = Math.ceil(numHoles / 2);
     const numTumblers = startingPositions.length;
 
     // Check if already solved
@@ -106,29 +106,40 @@ export function solveLock(
         // Try moving each tumbler in each direction
         for (let i = 0; i < numTumblers; i++) {
             for (const direction of ["left", "right"] as const) {
+                // Right button moves right (towards position 1), left button moves left (towards position 7)
                 const newPos =
-                    direction === "left"
+                    direction === "right"
                         ? positions[i] - 1
                         : positions[i] + 1;
 
                 // Check if move is valid (within bounds)
                 if (newPos < 1 || newPos > numHoles) continue;
 
-                // Apply move and link effects
+                // Check if all linked tumblers can move (constraint: linked tumblers must move together)
                 const newPositions = [...positions];
                 newPositions[i] = newPos;
+                let allLinksCanMove = true;
 
-                // Apply links triggered by this move
+                // Check all links where this tumbler is the source
                 for (const link of links) {
                     if (link.from === i) {
-                        const linkedNewPos = link.reversed
-                            ? newPositions[link.to] - 1
+                        // If reversed, move in opposite direction; otherwise move in same direction
+                        const linkDirection = link.reversed 
+                            ? (direction === "left" ? "right" : "left")
+                            : direction;
+                        const linkedNewPos = linkDirection === "right" 
+                            ? newPositions[link.to] - 1 
                             : newPositions[link.to] + 1;
-                        if (linkedNewPos >= 1 && linkedNewPos <= numHoles) {
-                            newPositions[link.to] = linkedNewPos;
+                        // If linked tumbler can't move, the primary move is invalid
+                        if (linkedNewPos < 1 || linkedNewPos > numHoles) {
+                            allLinksCanMove = false;
+                            break;
                         }
+                        newPositions[link.to] = linkedNewPos;
                     }
                 }
+
+                if (!allLinksCanMove) continue;
 
                 // Check if solved
                 if (newPositions.every((pos) => pos === centerPos)) {

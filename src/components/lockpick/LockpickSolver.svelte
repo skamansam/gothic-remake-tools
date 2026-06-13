@@ -46,25 +46,82 @@
     function resetTumblers() {
         if (currentLock) {
             tumblerPositions = [...currentLock.startingPositions];
+            solverResult = null;
+            currentStep = 0;
+            showSolver = false;
         }
+    }
+
+    function canMoveTumbler(index: number, direction: "left" | "right"): boolean {
+        if (!currentLock) return false;
+        const currentPos = tumblerPositions[index];
+        const maxPos = currentLock.numHoles;
+        // Right button moves right (towards position 1), left button moves left (towards position 7)
+        let newPos = direction === "right" ? currentPos - 1 : currentPos + 1;
+
+        // Check if move is within bounds
+        if (newPos < 1 || newPos > maxPos) return false;
+
+        // Check if all linked tumblers can move (constraint: linked tumblers must move together)
+        const tempPositions = [...tumblerPositions];
+        tempPositions[index] = newPos;
+
+        // Check all links where this tumbler is the source
+        for (const link of currentLock.links || []) {
+            if (link.from === index) {
+                // If reversed, move in opposite direction; otherwise move in same direction
+                const linkDirection = link.reversed 
+                    ? (direction === "left" ? "right" : "left")
+                    : direction;
+                const linkedNewPos = linkDirection === "right" 
+                    ? tempPositions[link.to] - 1 
+                    : tempPositions[link.to] + 1;
+                if (linkedNewPos < 1 || linkedNewPos > maxPos) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     function moveTumbler(index: number, direction: "left" | "right") {
         if (!currentLock) return;
         const currentPos = tumblerPositions[index];
         const maxPos = currentLock.numHoles; // 7 for 7 holes
-        let newPos = direction === "left" ? currentPos - 1 : currentPos + 1;
+        // Right button moves right (towards position 1), left button moves left (towards position 7)
+        let newPos = direction === "right" ? currentPos - 1 : currentPos + 1;
 
         // Clamp to valid range (1 to numHoles)
         newPos = Math.max(1, Math.min(maxPos, newPos));
 
         if (newPos !== currentPos) {
+            // Check if all linked tumblers can move (constraint: linked tumblers must move together)
+            const tempPositions = [...tumblerPositions];
+            tempPositions[index] = newPos;
+            let allLinksCanMove = true;
+
+            // Check all links where this tumbler is the source
+            for (const link of currentLock.links || []) {
+                if (link.from === index) {
+                    const linkedNewPos = link.reversed
+                        ? tempPositions[link.to] - 1
+                        : tempPositions[link.to] + 1;
+                    if (linkedNewPos < 1 || linkedNewPos > maxPos) {
+                        allLinksCanMove = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!allLinksCanMove) return; // Can't move if linked tumblers can't move
+
             tumblerPositions[index] = newPos;
-            applyLinks(index);
+            applyLinks(index, direction);
         }
     }
 
-    function applyLinks(triggerIndex: number) {
+    function applyLinks(triggerIndex: number, direction: "left" | "right") {
         if (!currentLock) return;
         const maxPos = currentLock.numHoles; // 7 for 7 holes
 
@@ -75,7 +132,11 @@
 
         for (const link of triggeredLinks) {
             const currentPos = tumblerPositions[link.to];
-            let newPos = link.reversed ? currentPos - 1 : currentPos + 1;
+            // If reversed, move in opposite direction; otherwise move in same direction
+            const linkDirection = link.reversed 
+                ? (direction === "left" ? "right" : "left")
+                : direction;
+            let newPos = linkDirection === "right" ? currentPos - 1 : currentPos + 1;
             newPos = Math.max(1, Math.min(maxPos, newPos));
 
             if (newPos !== currentPos) {
@@ -228,21 +289,17 @@
 							<div class="flex gap-2 ml-auto">
 								<button
 									onclick={() =>
-										moveTumbler(displayIndex, "right")}
+										moveTumbler(displayIndex, "left")}
 									class="px-2 py-1 bg-secondary text-text border border-border text-xs"
-									disabled={tumblerPositions[
-										displayIndex
-									] === currentLock.numHoles}
+									disabled={!canMoveTumbler(displayIndex, "left")}
 								>
 									←
 								</button>
 								<button
 									onclick={() =>
-										moveTumbler(displayIndex, "left")}
+										moveTumbler(displayIndex, "right")}
 									class="px-2 py-1 bg-secondary text-text border border-border text-xs"
-									disabled={tumblerPositions[
-										displayIndex
-									] === 1}
+									disabled={!canMoveTumbler(displayIndex, "right")}
 								>
 									→
 								</button>
@@ -303,7 +360,7 @@
 											: " left (←)"}
 									</span>
 									<span class="text-xs">
-										Positions: {move.positionsAfter.join(", ")}
+										Positions: {[...move.positionsAfter].reverse().join(", ")}
 									</span>
 								</div>
 							{/each}
