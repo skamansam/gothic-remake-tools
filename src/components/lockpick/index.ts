@@ -96,7 +96,7 @@ export function solveLock(
     const visited = new Set<string>();
     visited.add(startingPositions.join(","));
 
-    const maxIterations = 100000; // Prevent infinite loops
+    const maxIterations = 500000; // Prevent infinite loops
     let iterations = 0;
 
     while (queue.length > 0 && iterations < maxIterations) {

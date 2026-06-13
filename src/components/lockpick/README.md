@@ -247,7 +247,7 @@ export function solveLock(
 
 2. **Visited Set Prevents Loops**: The visited set ensures we don't revisit the same state, preventing infinite loops and improving performance.
 
-3. **Iteration Limit**: A safety limit (100,000 iterations) prevents the solver from running indefinitely on unsolvable or very complex locks.
+3. **Iteration Limit**: A safety limit (500,000 iterations) prevents the solver from running indefinitely on unsolvable or very complex locks. The 7-tumbler Test Lock requires ~155,000 BFS iterations to solve, so 500,000 provides a reasonable safety margin for most configurations.
 
 4. **Link Constraints**: The solver respects the constraint that linked tumblers must move together and cannot go out of bounds.
 

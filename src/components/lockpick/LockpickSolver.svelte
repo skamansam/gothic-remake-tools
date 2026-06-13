@@ -104,7 +104,10 @@
             // Check all links where this tumbler is the source
             for (const link of currentLock.links || []) {
                 if (link.from === index) {
-                    const linkedNewPos = link.reversed
+                    const linkDirection = link.reversed
+                        ? (direction === "left" ? "right" : "left")
+                        : direction;
+                    const linkedNewPos = linkDirection === "right"
                         ? tempPositions[link.to] - 1
                         : tempPositions[link.to] + 1;
                     if (linkedNewPos < 1 || linkedNewPos > maxPos) {
