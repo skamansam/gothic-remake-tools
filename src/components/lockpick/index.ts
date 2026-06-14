@@ -90,6 +90,7 @@ function applyMove(
     const newPos = direction === "right" ? positions[tumblerIndex] - 1 : positions[tumblerIndex] + 1;
     if (newPos < 1 || newPos > numHoles) return null;
 
+    const center = Math.ceil(numHoles / 2);
     const np = [...positions];
     np[tumblerIndex] = newPos;
 
@@ -100,6 +101,9 @@ function applyMove(
                 : direction;
             const linkedNewPos = linkDirection === "right" ? np[link.to] - 1 : np[link.to] + 1;
             if (linkedNewPos < 1 || linkedNewPos > numHoles) return null;
+            // Linked tumblers cannot be moved past the center position
+            if ((np[link.to] <= center && linkedNewPos > center) ||
+                (np[link.to] >= center && linkedNewPos < center)) return null;
             np[link.to] = linkedNewPos;
         }
     }

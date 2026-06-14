@@ -57,6 +57,7 @@
         if (!currentLock) return false;
         const currentPos = tumblerPositions[index];
         const maxPos = currentLock.numHoles;
+        const centerPos = Math.ceil(currentLock.numHoles / 2);
         // Right button moves right (towards position 1), left button moves left (towards position 7)
         let newPos = direction === "right" ? currentPos - 1 : currentPos + 1;
 
@@ -77,9 +78,10 @@
                 const linkedNewPos = linkDirection === "right" 
                     ? tempPositions[link.to] - 1 
                     : tempPositions[link.to] + 1;
-                if (linkedNewPos < 1 || linkedNewPos > maxPos) {
-                    return false;
-                }
+                if (linkedNewPos < 1 || linkedNewPos > maxPos) return false;
+                // Linked tumblers cannot be moved past the center position
+                if ((tumblerPositions[link.to] <= centerPos && linkedNewPos > centerPos) ||
+                    (tumblerPositions[link.to] >= centerPos && linkedNewPos < centerPos)) return false;
             }
         }
 
@@ -90,6 +92,7 @@
         if (!currentLock) return;
         const currentPos = tumblerPositions[index];
         const maxPos = currentLock.numHoles; // 7 for 7 holes
+        const centerPos = Math.ceil(currentLock.numHoles / 2);
         // Right button moves right (towards position 1), left button moves left (towards position 7)
         let newPos = direction === "right" ? currentPos - 1 : currentPos + 1;
 
@@ -112,6 +115,12 @@
                         ? tempPositions[link.to] - 1
                         : tempPositions[link.to] + 1;
                     if (linkedNewPos < 1 || linkedNewPos > maxPos) {
+                        allLinksCanMove = false;
+                        break;
+                    }
+                    // Linked tumblers cannot be moved past the center position
+                    if ((tumblerPositions[link.to] <= centerPos && linkedNewPos > centerPos) ||
+                        (tumblerPositions[link.to] >= centerPos && linkedNewPos < centerPos)) {
                         allLinksCanMove = false;
                         break;
                     }
