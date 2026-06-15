@@ -80,7 +80,7 @@
 			<div
 				class="card border border-border dark:border-border p-6 max-w-2xl w-full mx-4 bg-surface"
 			>
-				<NewLockpick onCreate={handleLockCreated} />
+				<NewLockpick onCreate={handleLockCreated} onCancel={() => (showCreateForm = false)} />
 			</div>
 		</div>
 	{/if}

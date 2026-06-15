@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { GothicLock, SolverMove, SolverResult, SolverAlgorithm } from "./index";
     import { getLock, updateLock, solveLock } from "./index";
+    import NewLockpick from "./NewLockpick.svelte";
     import { onMount } from "svelte";
 
     interface Props {
@@ -13,10 +14,8 @@
     // Current positions of tumblers during gameplay (0 = leftmost, 3 = center, 6 = rightmost)
     let tumblerPositions = $state<number[]>([]);
 
-    // Link creation form state
-    let linkFrom = $state<number | null>(null); // Source tumbler index (0-based)
-    let linkTo = $state<number | null>(null); // Target tumbler index (0-based)
-    let linkReversed = $state(false); // Whether link direction is reversed (opposite movement)
+    // Edit dialog state
+    let showEditDialog = $state(false);
 
     // Solver state
     let solverResult = $state<SolverResult | null>(null);
@@ -158,41 +157,16 @@
         }
     }
 
-    function addLink() {
-        if (
-            !currentLock ||
-            linkFrom === null ||
-            linkTo === null ||
-            linkFrom === linkTo
-        )
-            return;
-
-        // Check if link already exists
-        const exists = (currentLock.links || []).some(
-            (l) =>
-                l.from === linkFrom &&
-                l.to === linkTo &&
-                l.reversed === linkReversed,
-        );
-        if (!exists) {
-            currentLock.links = [
-                ...(currentLock.links || []),
-                { from: linkFrom, to: linkTo, reversed: linkReversed },
-            ];
-            updateCurrentLock();
+    async function handleEditSave() {
+        const updated = await getLock(lockId);
+        if (updated) {
+            currentLock = updated;
+            tumblerPositions = [...updated.startingPositions];
         }
-        // Reset selection
-        linkFrom = null;
-        linkTo = null;
-        linkReversed = false;
-    }
-
-    function removeLink(index: number) {
-        if (!currentLock) return;
-        currentLock.links = (currentLock.links || []).filter(
-            (_, i) => i !== index,
-        );
-        updateCurrentLock();
+        showEditDialog = false;
+        solverResult = null;
+        currentStep = 0;
+        showSolver = false;
     }
 
     function runSolver() {
@@ -229,12 +203,35 @@
 	<div
 		class="card border border-border dark:border-border p-4 mb-6 bg-surface"
 	>
-		<h2 class="text-xl font-bold">{currentLock.name}</h2>
-		<p class="text-text">{currentLock.location}</p>
-		{#if currentLock.description}
-			<p class="text-sm text-text mt-2">{currentLock.description}</p>
-		{/if}
+		<div class="flex items-start justify-between gap-4">
+			<div>
+				<h2 class="text-xl font-bold">{currentLock.name}</h2>
+				<p class="text-text">{currentLock.location}</p>
+				{#if currentLock.description}
+					<p class="text-sm text-text mt-2">{currentLock.description}</p>
+				{/if}
+			</div>
+			<button
+				onclick={() => (showEditDialog = true)}
+				class="shrink-0 px-3 py-1 bg-secondary text-text border border-border text-sm"
+			>
+				✏️ Edit Lock
+			</button>
+		</div>
 	</div>
+
+	<!-- Edit Lock Dialog -->
+	{#if showEditDialog}
+		<div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+			<div class="card border border-border p-6 max-w-2xl w-full mx-4 bg-surface">
+				<NewLockpick
+					lock={currentLock}
+					onCreate={handleEditSave}
+					onCancel={() => (showEditDialog = false)}
+				/>
+			</div>
+		</div>
+	{/if}
 
 	<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 		<!-- Lock Visualization -->
@@ -353,8 +350,10 @@
 					</button>
 				</div>
 			</div>
+		</section>
 
-			<!-- Solver Results -->
+		<!-- Solver Results -->
+		<section>
 			{#if showSolver && solverResult}
 				<div
 					class="card border border-border dark:border-border p-6 mb-6"
@@ -371,7 +370,7 @@
 						<p class="text-sm text-text mb-4">
 							{solverResult.moves.length} steps required
 						</p>
-						<div class="space-y-2 mb-4">
+						<div class="space-y-2 mb-4 max-h-[60vh] overflow-y-auto">
 							{#each solverResult.moves as move, i}
 								<div
 									class="flex items-center justify-between p-2 {i === currentStep
@@ -383,8 +382,8 @@
 									<span class="font-mono">
 										Step {i + 1}: Move T{move.tumblerIndex + 1}
 										{move.direction === "left"
-											? " right (→)"
-											: " left (←)"}
+											? " left (←)"
+											: " right (→)"}
 									</span>
 									<span class="text-xs">
 										Positions: {[...move.positionsAfter].reverse().join(", ")}
@@ -423,107 +422,5 @@
 			{/if}
 		</section>
 
-		<!-- Link Configuration -->
-		<section>
-			<h2 class="text-2xl font-semibold mb-4">Tumbler Links</h2>
-			<div
-				class="card border border-border dark:border-border p-6 mb-6"
-			>
-				<div class="space-y-4">
-					<div>
-						<label class="block mb-2 font-medium"
-							>From Tumbler</label
-						>
-						<div class="flex gap-2 flex-wrap">
-							{#each Array(currentLock.numTumblers) as _, i}
-								<button
-									class="px-3 py-1 border border-border {linkFrom ===
-									i
-										? 'bg-primary text-text'
-										: 'bg-surface text-text'}"
-									onclick={() => (linkFrom = i)}
-								>
-									T{i + 1}
-								</button>
-							{/each}
-						</div>
-					</div>
-
-					<div>
-						<label class="block mb-2 font-medium"
-							>To Tumbler</label
-						>
-						<div class="flex gap-2 flex-wrap">
-							{#each Array(currentLock.numTumblers) as _, i}
-								<button
-									class="px-3 py-1 border border-border {linkTo ===
-									i
-										? 'bg-primary text-text'
-										: 'bg-surface text-text'}"
-									onclick={() => (linkTo = i)}
-								>
-									T{i + 1}
-								</button>
-							{/each}
-						</div>
-					</div>
-
-					<div>
-						<label
-							class="flex items-center gap-2 mb-2 font-medium"
-							for="link-reversed"
-						>
-							<input
-								type="checkbox"
-								bind:checked={linkReversed}
-								class="w-4 h-4"
-								id="link-reversed"
-							/>
-							<span>Reversed Direction</span>
-						</label>
-						<p class="text-xs text-text">
-							When checked, moving the source tumbler will
-							move the target tumbler in the opposite
-							direction.
-						</p>
-					</div>
-
-					<button
-						onclick={addLink}
-						class="w-full px-4 py-2 bg-primary text-text border border-primary font-medium"
-						disabled={linkFrom === null || linkTo === null}
-					>
-						Add Link
-					</button>
-				</div>
-			</div>
-
-			<!-- Links List -->
-			{#if (currentLock.links || []).length > 0}
-				<div
-					class="card border border-border dark:border-border p-6"
-				>
-					<h3 class="font-semibold mb-4">Active Links</h3>
-					<div class="space-y-2">
-						{#each currentLock.links || [] as link, i}
-							<div
-								class="flex items-center justify-between p-2 bg-surface border border-border"
-							>
-								<span class="font-mono">
-									T{link.from + 1} → T{link.to + 1}
-									{link.reversed ? " (reversed)" : ""}
-								</span>
-								<button
-									onclick={() => removeLink(i)}
-									class="px-2 py-1 bg-error text-text border border-error text-sm"
-								>
-									Remove
-								</button>
-							</div>
-						{/each}
-					</div>
-				</div>
-			{/if}
-		</section>
 	</div>
 {/if}

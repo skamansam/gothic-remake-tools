@@ -5,7 +5,7 @@
 	import { page } from '$app/stores';
 	import { type ColorTheme, colorThemes, getThemeFromCustomColor } from '$lib/theme';
 
-	setIconset('mdi');
+	setIconset('tabler');
 
 	let { children } = $props();
 

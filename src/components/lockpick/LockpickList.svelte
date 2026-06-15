@@ -28,7 +28,7 @@
 {#if locks.length === 0}
     <p class="text-text mb-4">No locks saved yet.</p>
 {:else}
-    <div class="space-y-2 max-h-96 overflow-y-auto mb-4">
+    <div class="space-y-2 mb-4">
         {#each locks as lock}
             <div
                 class="flex items-center justify-between p-3 bg-surface border border-border"
