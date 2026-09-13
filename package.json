@@ -33,6 +33,13 @@
 		"vite-plugin-devtools-json": "^1.0.0"
 	},
 	"dependencies": {
-		"twintrinsic": "workspace:*"
+		"twintrinsic": "github:skamansam/twintrinsic"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"twintrinsic",
+			"esbuild",
+			"@tailwindcss/oxide"
+		]
 	}
 }

@@ -8,10 +8,14 @@ import devtoolsJson from "vite-plugin-devtools-json";
 const dirname =
 	typeof __dirname !== "undefined" ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
 	resolve: {
 		alias: {
-			twintrinsic: path.resolve(dirname, "../twintrinsic/src/lib"),
+			// In dev, use the local twintrinsic source for hot reload.
+			// In build (production), fall back to the npm/GitHub dependency.
+			...(command === "serve"
+				? { twintrinsic: path.resolve(dirname, "../twintrinsic/src/lib") }
+				: {}),
 		},
 	},
 	server: {
@@ -20,4 +24,4 @@ export default defineConfig({
 		},
 	},
 	plugins: [sveltekit(), tailwindcss(), devtoolsJson()],
-});
+}));
